@@ -304,7 +304,6 @@ package main
 
 import (
 	"fmt"
-	"encoding/base64"
 )
 
 func XOREncryption(shellcode []byte, key []byte) []byte {
