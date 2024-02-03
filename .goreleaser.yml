@@ -1,0 +1,24 @@
+builds:
+  - binary: Supernova
+    main: ./Supernova.go
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - 386
+
+archives:
+  - id: tgz
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "Supernova_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - none*
