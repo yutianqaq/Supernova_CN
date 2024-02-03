@@ -31,8 +31,9 @@ var (
 	__version__   = "1.0.0"
 	__license__   = "MIT"
 	__author__    = "@nickvourd"
-	__github__    = "https://github.com/nickvourd/Supernova"
-	__coauthors__ = [2]string{"@Papadope9", "@0xvm"}
+	__original_github__    = "https://github.com/nickvourd/Supernova"
+	__github__    = "https://github.com/yutianqaq/Supernova_CN"
+	__coauthors__ = [3]string{"@yutianqaq", "@Papadope9", "@0xvm"}
 )
 
 var __ascii__ = `
@@ -44,24 +45,25 @@ var __ascii__ = `
 ███████║╚██████╔╝██║     ███████╗██║  ██║██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║
 ╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝
 
-Supernova v%s - Real fucking shellcode encryptor.
-Supernova is an open source tool licensed under %s.
-Written with <3 by %s, %s and %s...
-Please visit %s for more...
+Supernova v%s - 真正的Shellcode加密器。
+Supernova是一个开源工具，受%s许可证保护。
+由%s、%s、%s和%s用<3编写...
+原版请访问%s了解更多信息...
+汉化版本%s
 
 `
 
 // Options function
 func Options() *FlagOptions {
-	inputFile := flag.String("i", "", "Path to the raw 64-bit shellcode")
-	encryption := flag.String("enc", "", "Shellcode encryption (i.e., ROT, XOR, RC4, AES, CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20)")
-	language := flag.String("lang", "", "Programming language to translate the shellcode (i.e., Nim, Rust, C, CSharp, Go)")
-	outFile := flag.String("o", "", "Name of the output file")
-	variable := flag.String("v", "shellcode", "Name of dynamic variable")
-	debug := flag.Bool("d", false, "Enable Debug mode")
-	key := flag.Int("k", 1, "Key lenght size for encryption")
-	version := flag.Bool("version", false, "Show Supernova current version")
-	guide := flag.Bool("guide", false, "Enable guide mode")
+	inputFile := flag.String("i", "", "64位原始格式 Shellcode 的路径")
+	encryption := flag.String("enc", "", "Shellcode加密方式 (例如, ROT, XOR, RC4, AES, CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20)")
+	language := flag.String("lang", "", "转换(Nim, Rust, C, CSharp, Go)格式的Shellcode")
+	outFile := flag.String("o", "", "输出文件名")
+	variable := flag.String("v", "shellcode", "Shellcode 的变量名称")
+	debug := flag.Bool("d", false, "开启 Debug 模式")
+	key := flag.Int("k", 1, "加密的密钥长度")
+	version := flag.Bool("version", false, "展示 Supernova 当前的版本")
+	guide := flag.Bool("guide", false, "开启引导模式")
 	flag.Parse()
 
 	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, language: *language, encryption: *encryption, variable: *variable, debug: *debug, key: *key, version: *version, guide: *guide}
@@ -70,7 +72,7 @@ func Options() *FlagOptions {
 // main function
 func main() {
 	// Print ascii
-	fmt.Printf(__ascii__, __version__, __license__, __author__, __coauthors__[1], __coauthors__[0], __github__)
+	fmt.Printf(__ascii__, __version__, __license__, __author__, __coauthors__[2], __coauthors__[1], __coauthors__[0], __original_github__, __github__)
 
 	// Check GO version of the current system
 	Utils.Version()
