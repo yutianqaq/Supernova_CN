@@ -1,3 +1,5 @@
+version: 1
+
 builds:
   - binary: Supernova
     main: ./Supernova.go
@@ -19,6 +21,12 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
-    name_template: "Supernova_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: >-
+      {{ .ProjectName }}_v{{.Version}}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
     files:
       - none*
