@@ -84,6 +84,8 @@ Usage of Suprenova.exe:
 这将输出 key 长度为 10 的多字节 xor shellcode
 
 ```
+msfvenom -p windows/x64/exec CMD="calc.exe" -f raw -o calc.bin
+
 ./Supernova -enc xor -i calc.bin -k 10 -lang go -o calc_xor10.bin
 
 
