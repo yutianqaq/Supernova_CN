@@ -22,5 +22,6 @@ go.work
 dist/
 *.cs
 *.nim
+*.bin
 *.c
 Program.go
