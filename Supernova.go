@@ -58,7 +58,7 @@ func Options() *FlagOptions {
 	inputFile := flag.String("i", "", "64位原始格式 Shellcode 的路径")
 	encryption := flag.String("enc", "", "Shellcode加密方式 (例如, ROT, XOR, RC4, AES, CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20)")
 	language := flag.String("lang", "", "转换(Nim, Rust, C, CSharp, Go)格式的Shellcode")
-	outFile := flag.String("o", "", "输出文件名")
+	outFile := flag.String("o", "", "输出到文件")
 	variable := flag.String("v", "shellcode", "Shellcode 的变量名称")
 	debug := flag.Bool("d", false, "开启 Debug 模式")
 	key := flag.Int("k", 1, "加密的密钥长度")
@@ -137,7 +137,15 @@ func main() {
 		template := Converters.ConvertShellcode2Template(encryptedShellcode, foundLanguage, encryptedLength, options.variable)
 
 		// Print encrypted template
-		fmt.Printf("[+] The encrypted payload with %s:\n\n%s\n\n", strings.ToLower(options.encryption), template)
+		encryptionType := strings.ToLower(options.encryption)
+		if options.outFile == "" && encryptedLength > 100000 {
+			fmt.Printf("[!] Encrypted payload (%s) is too large for console display.\n\n"+
+			"[!] Size: %d\n\n[!] Save the output to a file using: -o filename\n\n", encryptionType, encryptedLength)
+		} else if options.outFile != "" {
+			fmt.Printf("[+] Encrypted payload with %s\n\n", encryptionType)
+		} else {
+			fmt.Printf("[+] Encrypted payload with %s\n\n%s\n\n", encryptionType, template)
+		}
 
 		// Guide option is enable
 		if options.guide {
@@ -146,7 +154,7 @@ func main() {
 
 		// Outfile option is enable
 		if options.outFile != "" {
-			err := Output.SaveOutputToFile(template, options.outFile)
+			err := Output.SaveShellcodeToFile(encryptedShellcode, options.outFile)
 			if err != nil {
 				fmt.Println("Error:", err)
 				return

@@ -2,6 +2,8 @@ package Output
 
 import (
 	"Supernova/Utils"
+	"Supernova/Converters"
+	"encoding/hex"
 	"fmt"
 	"os"
 )
@@ -58,4 +60,36 @@ func KeyDetailsFormatter(key []byte) string {
 		}
 	}
 	return formattedKey
+}
+
+// SaveShellcodeToFile function
+func SaveShellcodeToFile(shellcode, filename string) error {
+	// Removes Spaces and the "0x" prefix from the string
+	shellcode = Converters.CleanShellcodeString(shellcode)
+
+	// Decodes shellcode string into byte array
+	data, err := hex.DecodeString(shellcode)
+	if err != nil {
+		return fmt.Errorf("Error decoding shellcode: %v", err)
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("Error creating file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		return fmt.Errorf("Error writing to file: %v", err)
+	}
+
+	absolutePath, err := Utils.GetAbsolutePath(filename)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
+
+	fmt.Printf("[+] Save encrypted shellcode file to " + absolutePath + "\n\n")
+	return nil
 }
