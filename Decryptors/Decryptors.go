@@ -598,7 +598,7 @@ func main() {
 	key := []byte("%s")
 	decryptedShellcode := RC4Encryption(%s, key)
 
-	fmt.Print("XOR  Decrypted Payload:\n")
+	fmt.Print("RC4  Decrypted Payload:\n")
 	for i, b := range decryptedShellcode {
 		fmt.Printf("0x%%02X", b)
 		if i < len(decryptedShellcode)-1 {
@@ -840,7 +840,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Print("Decrypted Payload:\n")
+	fmt.Print("AES Decrypted Payload:\n")
 	for i, b := range decrypted {
 		fmt.Printf("0x%%02X", b)
 		if i < len(decrypted)-1 {
