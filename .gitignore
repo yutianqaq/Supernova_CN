@@ -20,3 +20,7 @@
 # Go workspace file
 go.work
 dist/
+*.cs
+*.nim
+*.c
+Program.go
