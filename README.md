@@ -1,32 +1,42 @@
 # Supernova_CN
-真正的 Shellcode 加密器（对比原版新增加了  CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20 等加密方式和汉化帮助信息）感谢原作者 [@nickvourd](https://github.com/nickvourd) 的 [Supernova](https://github.com/nickvourd/Supernova) 以及他们的共同编写者
+真正的 Shellcode 加密器（对比原版新增加了  CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20 等加密方式和汉化帮助信息）感谢原作者 [@nickvourd](https://github.com/nickvourd) 的 [Supernova](https://github.com/nickvourd/Supernova) 以及他们的共同编写者。
 
 原始版本：https://github.com/nickvourd/Supernova
 
 
-## Description
-Supernova 是一个开源的 Golang 工具，它使用户能够安全地加密原始 shellcode。此外，它还提供将加密的 shellcode 自动转换为与各种编程语言兼容的格式，包括:
+## 介绍
+Supernova 是一个开源的 Golang 工具，它使用户能够**方便地**加密原始 shellcode。此外，它还提供将加密的 shellcode 自动转换为与各种编程语言兼容的格式，并提供了**输出对应的解密代码**(引导模式)，包括:
 - C
 - C#
 - Rust
 - Nim
 - Go
+- Raw
 
 它支持多种不同的密码，包括:
-- ROT
-- XOR
-- RC4
-- AES
-- CHACHA20
-- Base64XOR
-- Base64XOR
-- Base64RC4
-- Base64AES
-- Base64CHACHA20
 
-此外，该工具使用选定的密码和语言生成解密函数，同时还提供如何有效使用它的说明。
+ROT、XOR、RC4、AES、CHACHA20、Base64XOR、Base64XOR、Base64RC4、Base64AES、Base64CHACHA20
 
-Supernova 是用跨平台语言 Golang 编写的，可以在 Windows 和 Linux 系统上使用。
+# 能力表
+
+Supernova 是用跨平台语言 Golang 编写的，可以在 Windows、 Linux 和 MacOS（未测试） 系统上使用。
+
+该工具使用选定的密码和语言生成解密函数，同时还提供如何有效使用它的说明。下面是能力表
+
+| 格式 | ROT  | XOR  | RC4  | AES  | CHACHA20 | BASE64XOR | BASE64RC4 | BASE64AES | BASE64CHACHA20 |
+| ---- | ---- | ---- | ---- | ---- | -------- | --------- | --------- | --------- | -------------- |
+| C    | ✔️    | ✔️    | ✔️    |      | ❌        | ❌         | ❌         | ❌         | ❌              |
+| C#   | ✔️    | ✔️    | ✔️    | ✔️    | ❌        | ❌         | ❌         | ❌         | ❌              |
+| Rust | ✔️    | ✔️    | ✔️    | ✔️    | ❌        | ❌         | ❌         | ❌         | ❌              |
+| Nim  | ✔️    | ✔️    | ✔️    | ✔️    | ❌        | ❌         | ❌         | ❌         | ❌              |
+| Go   | ✔️    | ✔️    | ✔️    | ✔️    | ✔️        | ✔️         | ✔️         | ✔️         | ✔️              |
+| Raw  | ✔️    | ✔️    | ✔️    | ✔️    | ✔️        | ✔️         | ✔️         | ✔️         | ✔️              |
+
+✔️标识以支持
+
+❌表示暂未支持
+
+
 
 ## 许可证
 
@@ -51,7 +61,7 @@ go build Supernova.go
 ███████║╚██████╔╝██║     ███████╗██║  ██║██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║
 ╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝
 
-Supernova v1.0.0 - 真正的Shellcode加密器。
+Supernova v1.2.0 - 真正的Shellcode加密器。
 Supernova是一个开源工具，受MIT许可证保护。
 由@nickvourd、@0xvm、@Papadope9和@yutianqaq用<3编写...
 原版请访问https://github.com/nickvourd/Supernova了解更多信息...
@@ -62,15 +72,15 @@ Usage of Suprenova.exe:
   -enc string
         Shellcode加密方式 (例如, ROT, XOR, RC4, AES, CHACHA20, B64XOR, B64RC4, B64AES, B64CHACHA20)
   -guide
-        开启引导模式
+        开启引导模式（输出解密代码）
   -i string
-        64位原始格式 Shellcode 的路径
+        64 位原始格式 Shellcode 的路径
   -k int
         加密的密钥长度 (default 1)
   -lang string
-        转换(Nim, Rust, C, CSharp, Go)格式的Shellcode
+        转换(Raw, Nim, Rust, C, CSharp, Go)格式的 Shellcode
   -o string
-        输出文件名
+        输出到文件
   -v string
         Shellcode 的变量名称 (default "shellcode")
   -version
