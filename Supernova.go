@@ -30,7 +30,7 @@ type FlagOptions struct {
 
 // global variables
 var (
-	__version__         = "1.1.0"
+	__version__         = "1.2.0"
 	__license__         = "MIT"
 	__author__          = "@nickvourd"
 	__original_github__ = "https://github.com/nickvourd/Supernova"
