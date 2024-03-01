@@ -40,11 +40,11 @@ Supernova 是用跨平台语言 Golang 编写的，可以在 Windows、 Linux �
 
 ## 许可证
 
-本工具使用 [![License: MIT](https://img.shields.io/badge/MIT-License-yellow.svg)](LICENSE) 许可证.
+本工具使用 [![License: MIT](https://img.shields.io/badge/MIT-License-yellow.svg)](LICENSE) 许可证。
 
 ## 安装
 
-要安装Supernova，请运行以下命令，或者下载[发行版本](https://github.com/yutianqaq/Supernova_CN/releases)
+要安装Supernova，请运行以下命令，或者下载[发行版本](https://github.com/yutianqaq/Supernova_CN/releases)。
 ```
 go build Supernova.go
 ```
@@ -91,7 +91,7 @@ Usage of Suprenova.exe:
 
 ## 仅加密 Shellcode - XOR
 
-这将输出 key 长度为 10 的多字节 xor shellcode
+这将输出 key 长度为 10 的多字节 xor shellcode。
 
 ```
 msfvenom -p windows/x64/exec CMD="calc.exe" -f raw -o calc.bin
