@@ -1,9 +1,7 @@
 package Decryptors
 
 import (
-	"Supernova/Converters"
 	"Supernova/Output"
-	"Supernova/Utils"
 	"fmt"
 	"log"
 	"os"
@@ -142,34 +140,57 @@ fn main() {
 }
 `
 
-// go rot template
+// golang rot template
 var __go_rot__ = `
-func CaesarEncryption(shellcode []byte, shift int) []byte {
-	encrypted := make([]byte, len(shellcode))
+package main
+
+import (
+	"fmt"
+)
+
+func caesarDecrypt(shellcode []byte, key byte) []byte {
+	decrypted := make([]byte, len(shellcode))
+
 	for i, char := range shellcode {
-		// Apply Caesar cipher encryption
-		encrypted[i] = byte((int(char) - shift) %% 256)
-		//encryptedChar := char + byte(shift)
-		//encrypted[i] = encryptedChar
+		decrypted[i] = char - key
 	}
-	return encrypted
+
+	return decrypted
 }
 
 func main() {
-	%s := []byte{ %s }
+	%s := []byte{%s}
+	key := byte(%d)
+	decryptedShellcode := caesarDecrypt(%s, key)
 
-	decryptedShellcode := CaesarEncryption(%s, %d)
-
-	fmt.Print("ROT Decrypted Payload:\n")
-	for i, b := range decryptedShellcode {
-		fmt.Printf("0x%%02X", b)
-		if i < len(decryptedShellcode)-1 {
-			fmt.Print(", ")
-		}
-	}
-	fmt.Println()
-
+	fmt.Printf("ROT Decrypted Payload:\n\n%s := %%#v\n", decryptedShellcode)
 }
+`
+
+// python rot template
+var __python_rot__ = `
+def caesar_decrypt(shellcode, key):
+    decrypted = bytearray(len(shellcode))
+    for i in range(len(shellcode)):
+        decrypted[i] = (shellcode[i] - key) & 0xFF
+    return decrypted
+
+def format_shellcode(shellcode):
+    formatted = "\\x" + "\\x".join([format(byte, '02x') for byte in shellcode])
+    return formatted
+
+def main():
+    %s = bytearray(b"%s")
+    key = %d 
+    decrypted_shellcode = caesar_decrypt(%s, key)
+
+    formatted_shellcode = format_shellcode(decrypted_shellcode)
+
+    print("ROT Decrypted Payload:\n\n")
+    print("%s = b\"" + formatted_shellcode + "\"")
+
+if __name__ == "__main__":
+    main()
 `
 
 // csharp xor template
@@ -217,7 +238,7 @@ namespace XORDecryption
                 }
             }
 
-            Console.WriteLine("Multi-XOR Decrypted Payload:\n");
+            Console.WriteLine("Multi-XOR Decrypted Payload:\n\n");
             Console.WriteLine($"byte[] %s = new byte[{decryptedPayload.Length}] {{ {hex} }};\n\n");
         }
     }
@@ -298,7 +319,8 @@ fn main() {
     println!("];");
 }
 `
-// go xor template
+
+// golang xor template
 var __go_xor__ = `
 package main
 
@@ -306,32 +328,59 @@ import (
 	"fmt"
 )
 
-func XOREncryption(shellcode []byte, key []byte) []byte {
-	encrypted := make([]byte, len(shellcode))
-	keyLen := len(key)
-
-	for i := 0; i < len(shellcode); i++ {
-		encrypted[i] = shellcode[i] ^ key[i%%keyLen]
+func multiXORDecrypt(encryptedData, key []byte) []byte {
+	decrypted := make([]byte, len(encryptedData))
+	for i := 0; i < len(encryptedData); i++ {
+		decrypted[i] = encryptedData[i] ^ key[i%%len(key)]
 	}
-
-	return encrypted
+	return decrypted
 }
 
 func main() {
 	%s := []byte{%s}
-	key := []byte { %s }
-	decryptedShellcode := XOREncryption(%s, key)
 
-	fmt.Print("XOR  Decrypted Payload:\n")
-	for i, b := range decryptedShellcode {
-		fmt.Printf("0x%%02X", b)
-		if i < len(decryptedShellcode)-1 {
+	multiXORKey := []byte{%s}
+
+	decryptedPayload := multiXORDecrypt(%s, multiXORKey)
+
+	// Print the decryptedPayload as a Go byte slice initialization
+    fmt.Println("Multi-XOR Decrypted Payload:\n\n")
+	fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		fmt.Printf("0x%%02x", b)
+		if i < len(decryptedPayload)-1 {
 			fmt.Print(", ")
 		}
 	}
-	fmt.Println()
-
+	fmt.Println("};")
 }
+`
+
+// python xor template
+var __python_xor__ = `
+def multi_xor_decrypt(encrypted_data, key):
+    decrypted = bytearray(len(encrypted_data))
+    for i in range(len(encrypted_data)):
+        decrypted[i] = encrypted_data[i] ^ key[i %% len(key)]
+    return decrypted
+
+def format_shellcode(shellcode):
+    formatted = "\\x" + "\\x".join([format(byte, '02x') for byte in shellcode])
+    return formatted
+
+def main():
+    %s = bytearray(b"%s")
+    multi_xor_key = bytearray(b"%s")
+
+    decrypted_payload = multi_xor_decrypt(%s, multi_xor_key)
+
+    formatted_shellcode = format_shellcode(decrypted_payload)
+
+    print("Multi-XOR Decrypted Payload:\n\n")
+    print(f"%s = b\"{formatted_shellcode}\"")
+
+if __name__ == "__main__":
+    main()
 `
 
 // csharp rc4 template
@@ -412,7 +461,7 @@ namespace RC4Dencryption
                 }
             }
 
-            Console.WriteLine("RC4 Dencrypted Payload:\n");
+            Console.WriteLine("RC4 Dencrypted Payload:\n\n");
             Console.WriteLine($"byte[] %s = new byte[{dencryptedPayload.Length}] {{ {hex} }};\n\n");
         }
     }
@@ -556,63 +605,95 @@ fn main() {
 }
 `
 
+// golang rc4 template
 var __go_rc4__ = `
 package main
 
 import (
-	"fmt"
+    "crypto/rc4"
+    "fmt"
 )
 
-type Rc4Context struct {
-	i uint32
-	j uint32
-	s [256]uint8
-}
-
-func RC4Encryption(data []byte, key []byte) []byte {
-	var s [256]byte
-	for i := 0; i < 256; i++ {
-		s[i] = byte(i)
-	}
-	j := 0
-	for i := 0; i < 256; i++ {
-		j = (j + int(s[i]) + int(key[i%%len(key)])) %% 256
-		s[i], s[j] = s[j], s[i]
-	}
-
-	encrypted := make([]byte, len(data))
-	i, j := 0, 0
-	for k := 0; k < len(data); k++ {
-		i = (i + 1) %% 256
-		j = (j + int(s[i])) %% 256
-		s[i], s[j] = s[j], s[i]
-		encrypted[k] = data[k] ^ s[(int(s[i])+int(s[j]))%%256]
-	}
-
-	return encrypted
+func rc4Decrypt(ciphertext, key []byte) ([]byte, error) {
+    cipher, err := rc4.NewCipher(key)
+    if err != nil {
+        return nil, err
+    }
+    plaintext := make([]byte, len(ciphertext))
+    cipher.XORKeyStream(plaintext, ciphertext)
+    return plaintext, nil
 }
 
 func main() {
-	%s := []byte{%s}
+    %s := []byte{%s}
+    passphrase := "%s"
 
-	key := []byte("%s")
-	decryptedShellcode := RC4Encryption(%s, key)
+    key := []byte(passphrase)
 
-	fmt.Print("RC4  Decrypted Payload:\n")
-	for i, b := range decryptedShellcode {
-		fmt.Printf("0x%%02X", b)
-		if i < len(decryptedShellcode)-1 {
-			fmt.Print(", ")
-		}
-	}
-	fmt.Println()
+    decryptedPayload, err := rc4Decrypt(%s, key)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
 
+    // Print the decryptedPayload as a Go byte slice initialization
+	fmt.Println("RC4 Dencrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+    for i, b := range decryptedPayload {
+        fmt.Printf("0x%%02x", b)
+        if i < len(decryptedPayload)-1 {
+            fmt.Print(", ")
+        }
+    }
+    fmt.Println("}")
 }
+`
+
+// python rc4 template
+var __python_rc4__ = `
+import sys
+
+def rc4(key, data):
+    S = list(range(256))
+    j = 0
+    out = []
+
+    # Key-scheduling algorithm
+    for i in range(256):
+        j = (j + S[i] + key[i %% len(key)]) %% 256
+        S[i], S[j] = S[j], S[i]
+
+    # Pseudo-random generation algorithm
+    i = j = 0
+    for byte in data:
+        i = (i + 1) %% 256
+        j = (j + S[i]) %% 256
+        S[i], S[j] = S[j], S[i]
+        out.append(byte ^ S[(S[i] + S[j]) %% 256])
+
+    return bytes(out)
+
+def main():
+    passphrase = b'%s'
+    %s = b"%s"
+
+    try:
+        decrypted_shellcode = rc4(passphrase, %s)
+        shellcode_hex = ''.join([f'\\x{byte:02x}' for byte in decrypted_shellcode])
+        print("RC4 Decrypted Shellcode:\n\n")
+        print(f'%s = b"{shellcode_hex}"')
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        sys.exit(1)
+ 
+if __name__ == "__main__":
+    main()
 `
 
 // csharp aes template
 var __csharp_aes__ = `
 using System;
+using System,IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -649,7 +730,7 @@ namespace AESDecryption
         static void Main(string[] args)
         {
             byte[] %s = new byte[%d] {%s};
-            byte[] aesKey = new byte[32] {%s};
+            byte[] aesKey = new byte[%d] {%s};
             byte[] aesIV = new byte[16] {%s};
 
             byte[] decryptedPayload = AESDecrypt(%s, aesKey, aesIV);
@@ -693,7 +774,7 @@ int AESDecrypt(const uint8_t* encryptedData, size_t encryptedDataLength, const u
     int decryptedLength = 0;
 
     ctx = EVP_CIPHER_CTX_new();
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+    EVP_DecryptInit_ex(ctx, EVP_aes_%d_cbc(), NULL, key, iv);
     EVP_DecryptUpdate(ctx, decryptedData, &len, encryptedData, encryptedDataLength);
     decryptedLength += len;
     EVP_DecryptFinal_ex(ctx, decryptedData + len, &len);
@@ -745,7 +826,7 @@ use openssl::error::ErrorStack;
 use std::io::Write;
 
 fn aes_decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
-    let cipher = Cipher::aes_256_cbc();
+    let cipher = Cipher::aes_%d_cbc();
     let mut decrypter = Crypter::new(cipher, Mode::Decrypt, key, Some(iv))?;
 
     let mut decrypted_data = vec![0; encrypted_data.len() + cipher.block_size()];
@@ -761,7 +842,7 @@ fn aes_decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let %s: [u8; %d] = [%s];
 
-    let aes_key: [u8; 32] = [%s];
+    let aes_key: [u8; %d] = [%s];
 
     let aes_iv: [u8; 16] = [%s];
 
@@ -787,67 +868,335 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 `
 
+// go aes template
 var __go_aes__ = `
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
+    "crypto/aes"
+    "crypto/cipher"
+    "fmt"
+)
+
+func AESDecrypt(encryptedData []byte, key []byte, iv []byte) []byte {
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        fmt.Println("Error creating AES cipher:", err)
+        return nil
+    }
+
+    decrypter := cipher.NewCBCDecrypter(block, iv)
+
+    decrypted := make([]byte, len(encryptedData))
+    decrypter.CryptBlocks(decrypted, encryptedData)
+
+    // Remove PKCS7 padding (assuming it was used)
+    padding := decrypted[len(decrypted)-1]
+    decrypted = decrypted[:len(decrypted)-int(padding)]
+
+    return decrypted
+}
+
+func main() {
+    %s := []byte{%s}
+
+    aesKey := []byte{%s}
+    aesIV := []byte{%s}
+
+    decryptedPayload := AESDecrypt(%s, aesKey, aesIV)
+
+    fmt.Println("AES Decrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		if i == len(decryptedPayload)-1 {
+			fmt.Printf("0x%%02x", b)
+		} else {
+			fmt.Printf("0x%%02x, ", b)
+		}
+	}
+	fmt.Println("}")
+}
+`
+
+// python aes template
+var __python_aes__ = `
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+
+def decrypt_aes_cbc(key, iv, ciphertext):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    decryptor = cipher.decryptor()
+    padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+    unpadder = padding.PKCS7(128).unpadder()
+    plaintext = unpadder.update(padded_data) + unpadder.finalize()
+    return plaintext
+
+def format_shellcode(shellcode):
+    formatted = "\\x" + "\\x".join([format(byte, '02x') for byte in shellcode])
+    return formatted
+
+def main():
+    key = b"%s"
+    iv = b"%s"
+
+    %s = b"%s"
+    plaintext = decrypt_aes_cbc(key, iv, %s)
+
+    formatted_shellcode = format_shellcode(plaintext)
+
+    print("AES Decrypted Shellcode:\n\n")
+    print(f"%s = b\"{formatted_shellcode}\"")
+
+if __name__ == "__main__":
+    main()
+`
+
+// golang b64xor template
+var __go_b64xor__ = `
+package main
+
+import (
+    "encoding/base64"
 	"fmt"
 )
 
-// PKCS7Unpadding function
-func PKCS7Unpadding(data []byte) ([]byte, error) {
-	length := len(data)
-	unpadding := int(data[length-1])
-	if unpadding > length {
-		return nil, fmt.Errorf("Invalid padding")
+func multiXORDecrypt(encryptedData, key []byte) []byte {
+	decrypted := make([]byte, len(encryptedData))
+	for i := 0; i < len(encryptedData); i++ {
+		decrypted[i] = encryptedData[i] ^ key[i%%len(key)]
 	}
-	return data[:length-unpadding], nil
-}
-
-// AESDecryption function
-func AESDecryption(key []byte, iv []byte, ciphertext []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a new CBC mode decrypter
-	mode := cipher.NewCBCDecrypter(block, iv)
-
-	// Decrypt the ciphertext
-	decrypted := make([]byte, len(ciphertext))
-	mode.CryptBlocks(decrypted, ciphertext)
-
-	// Remove PKCS7 padding
-	unpaddedData, err := PKCS7Unpadding(decrypted)
-	if err != nil {
-		return nil, err
-	}
-
-	return unpaddedData, nil
+	return decrypted
 }
 
 func main() {
 	%s := []byte{%s}
-	key := []byte{%s}
-	iv := []byte{%s}
 
-	// Decryption
-	decrypted, err := AESDecryption(key, iv, %s)
-	if err != nil {
-		panic(err)
-	}
+	multiXORKey := []byte{%s}
 
-	fmt.Print("AES Decrypted Payload:\n")
-	for i, b := range decrypted {
-		fmt.Printf("0x%%02X", b)
-		if i < len(decrypted)-1 {
+    decryptedShellcodeBase64, _ := base64.StdEncoding.DecodeString(string(%s))
+	decryptedPayload := multiXORDecrypt(decryptedShellcodeBase64, multiXORKey)
+
+	// Print the decryptedPayload as a Go byte slice initialization
+    fmt.Println("B64Multi-XOR Decrypted Payload:\n\n")
+	fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		fmt.Printf("0x%%02x", b)
+		if i < len(decryptedPayload)-1 {
 			fmt.Print(", ")
 		}
 	}
-	fmt.Println()
+	fmt.Println("}")
+}
+`
+
+// golang b64rc4 template
+var __go_b64rc4__ = `
+package main
+
+import (
+    "crypto/rc4"
+    "encoding/base64"
+    "fmt"
+)
+
+func rc4Decrypt(ciphertext, key []byte) ([]byte, error) {
+    cipher, err := rc4.NewCipher(key)
+    if err != nil {
+        return nil, err
+    }
+    plaintext := make([]byte, len(ciphertext))
+    cipher.XORKeyStream(plaintext, ciphertext)
+    return plaintext, nil
+}
+
+func main() {
+    %s := []byte{%s}
+    passphrase := "%s"
+
+    key := []byte(passphrase)
+
+	decryptedShellcodeBase64, _ := base64.StdEncoding.DecodeString(string(%s))
+    decryptedPayload, err := rc4Decrypt(decryptedShellcodeBase64, key)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+
+    // Print the decryptedPayload as a Go byte slice initialization
+	fmt.Println("B64RC4 Dencrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+    for i, b := range decryptedPayload {
+        fmt.Printf("0x%%02x", b)
+        if i < len(decryptedPayload)-1 {
+            fmt.Print(", ")
+        }
+    }
+    fmt.Println("}")
+}
+`
+
+// go b64aes template
+var __go_b64aes__ = `
+package main
+
+import (
+    "crypto/aes"
+    "crypto/cipher"
+    "encoding/base64"
+    "fmt"
+)
+
+func AESDecrypt(encryptedData []byte, key []byte, iv []byte) []byte {
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        fmt.Println("Error creating AES cipher:", err)
+        return nil
+    }
+
+    decrypter := cipher.NewCBCDecrypter(block, iv)
+
+    decrypted := make([]byte, len(encryptedData))
+    decrypter.CryptBlocks(decrypted, encryptedData)
+
+    // Remove PKCS7 padding (assuming it was used)
+    padding := decrypted[len(decrypted)-1]
+    decrypted = decrypted[:len(decrypted)-int(padding)]
+
+    return decrypted
+}
+
+func main() {
+    %s := []byte{%s}
+
+    aesKey := []byte{%s}
+    aesIV := []byte{%s}
+
+    decryptedShellcodeBase64, _ := base64.StdEncoding.DecodeString(string(%s))
+    decryptedPayload := AESDecrypt(decryptedShellcodeBase64, aesKey, aesIV)
+
+    fmt.Println("AES Decrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		if i == len(decryptedPayload)-1 {
+			fmt.Printf("0x%%02x", b)
+		} else {
+			fmt.Printf("0x%%02x, ", b)
+		}
+	}
+	fmt.Println("}")
+}
+`
+
+// go chacha20
+var __go_chacha20__ = `
+package main
+
+import (
+	"golang.org/x/crypto/chacha20poly1305"
+	"fmt"
+)
+
+func Chacha20Decrypt(data []byte, key []byte) ([]byte) {
+	aead, err := chacha20poly1305.NewX(key)
+
+
+	nonceSize := aead.NonceSize()
+
+	if len(data) < nonceSize {
+		return nil
+	}
+
+	// Split nonce and ciphertext.
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+
+	// Decrypt the message and check it wasn't tampered with.
+	plaintext, err := aead.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		if err.Error() == "chacha20poly1305: message authentication failed" {
+			return nil
+		}
+
+		return nil
+	}
+
+	return plaintext
+}
+
+
+func main() {
+	%s := []byte{ %s }
+	key := []byte { %s }
+
+	decryptedPayload := Chacha20Decrypt(%s, key)
+
+	fmt.Print("CHACHA20 Decrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		if i == len(decryptedPayload)-1 {
+			fmt.Printf("0x%%02x", b)
+		} else {
+			fmt.Printf("0x%%02x, ", b)
+		}
+	}
+	fmt.Println("}")
+}
+`
+
+// go b64chacha20
+var __go_b64chacha20__ = `
+package main
+
+import (
+	"golang.org/x/crypto/chacha20poly1305"
+	"encoding/base64"
+
+	"fmt"
+)
+
+func Chacha20Decrypt(data []byte, key []byte) ([]byte) {
+	aead, err := chacha20poly1305.NewX(key)
+
+
+	nonceSize := aead.NonceSize()
+
+	if len(data) < nonceSize {
+		return nil
+	}
+
+	// Split nonce and ciphertext.
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+
+	// Decrypt the message and check it wasn't tampered with.
+	plaintext, err := aead.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		if err.Error() == "chacha20poly1305: message authentication failed" {
+			return nil
+		}
+
+		return nil
+	}
+
+	return plaintext
+}
+
+
+func main() {
+	%s := []byte{ %s }
+	key := []byte { %s }
+
+	decryptedShellcodeBase64, _ := base64.StdEncoding.DecodeString(string(%s))
+	decryptedPayload := Chacha20Decrypt(decryptedShellcodeBase64, key)
+
+	fmt.Print("B64CHACHA20 Decrypted Payload:\n\n")
+    fmt.Print("%s := []byte{")
+	for i, b := range decryptedPayload {
+		if i == len(decryptedPayload)-1 {
+			fmt.Printf("0x%%02x", b)
+		} else {
+			fmt.Printf("0x%%02x, ", b)
+		}
+	}
+	fmt.Println("}")
 }
 `
 
@@ -882,8 +1231,6 @@ func SetDecryptionFile(extension string) string {
 
 // DecryptorsTemplates function
 func DecryptorsTemplates(language string, cipher string, variable string, key int, payloadSize int, encryptedShellcode string, byteKey []byte, passphrase string, iv []byte) {
-	// Call function named HostIdentifier
-	operatingSystem := Utils.HostIdentifier()
 
 	// Set logger for errors
 	logger := log.New(os.Stderr, "[!] ", 0)
@@ -907,7 +1254,7 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __csharp_rot__, cipher)
 		case "xor":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Config dynamic variable
 			__csharp_xor__ = fmt.Sprintf(__csharp_xor__, variable, payloadSize, encryptedShellcode, formattedKey, variable, variable)
@@ -922,16 +1269,18 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __csharp_rc4__, cipher)
 		case "aes":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Call function named KeyDetailsFormatter
-			formattedIv := Output.KeyDetailsFormatter(iv)
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
 
 			// Config dynamic variable
-			__csharp_aes__ = fmt.Sprintf(__csharp_aes__, variable, payloadSize, encryptedShellcode, formattedKey, formattedIv, variable, variable)
+			__csharp_aes__ = fmt.Sprintf(__csharp_aes__, variable, payloadSize, encryptedShellcode, key, formattedKey, formattedIv, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __csharp_aes__, cipher)
+		default:
+			fmt.Printf("[!] Guide mode does not support the %s in CSharp language, yet!\n\n", cipher)
 		}
 	case "c":
 		extension := "c"
@@ -941,9 +1290,6 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 
 		switch strings.ToLower(cipher) {
 		case "rot":
-			// Call function named AddValues2Template
-			__c_rot__ = Converters.AddValues2Template(operatingSystem, __c_rot__)
-
 			// Config dynamic variable
 			__c_rot__ = fmt.Sprintf(__c_rot__, variable, encryptedShellcode, key, variable, variable)
 
@@ -951,10 +1297,7 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __c_rot__, cipher)
 		case "xor":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
-
-			// Call function named AddValues2Template
-			__c_xor__ = Converters.AddValues2Template(operatingSystem, __c_xor__)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Config dynamic variable
 			__c_xor__ = fmt.Sprintf(__c_xor__, variable, encryptedShellcode, variable, formattedKey, variable, variable)
@@ -962,9 +1305,6 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __c_xor__, cipher)
 		case "rc4":
-			// Call function named AddValues2Template
-			__c_rc4__ = Converters.AddValues2Template(operatingSystem, __c_rc4__)
-
 			// Config dynamic variable
 			__c_rc4__ = fmt.Sprintf(__c_rc4__, passphrase, variable, encryptedShellcode, variable, variable, variable)
 
@@ -972,19 +1312,21 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __c_rc4__, cipher)
 		case "aes":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Call function named KeyDetailsFormatter
-			formattedIv := Output.KeyDetailsFormatter(iv)
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
 
-			// Call function named AddValues2Template
-			__c_aes__ = Converters.AddValues2Template(operatingSystem, __c_aes__)
+			// Call function named DetectNotification
+			keyNotification := Output.DetectNotification(key)
 
 			// Config dynamic variable
-			__c_aes__ = fmt.Sprintf(__c_aes__, variable, encryptedShellcode, variable, formattedKey, formattedIv, variable, variable)
+			__c_aes__ = fmt.Sprintf(__c_aes__, keyNotification, variable, encryptedShellcode, variable, formattedKey, formattedIv, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __c_aes__, cipher)
+		default:
+			fmt.Printf("[!] Guide mode does not support the %s in C language, yet!\n\n", cipher)
 		}
 	case "rust":
 		extension := "rs"
@@ -1001,7 +1343,7 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __rust_rot__, cipher)
 		case "xor":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Config dynamic variable
 			__rust_xor__ = fmt.Sprintf(__rust_xor__, variable, payloadSize, encryptedShellcode, key, formattedKey, variable, variable, payloadSize)
@@ -1016,21 +1358,25 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 			SaveTamplate2File(foundFilename, __rust_rc4__, cipher)
 		case "aes":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Call function named KeyDetailsFormatter
-			formattedIv := Output.KeyDetailsFormatter(iv)
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
 
-			// Call function named AddValues2Template
-			__rust_aes__ = Converters.AddValues2Template(operatingSystem, __rust_aes__)
+			// Call function named DetectNotification
+			keyNotification := Output.DetectNotification(key)
 
 			// Config dynamic variable
-			__rust_aes__ = fmt.Sprintf(__rust_aes__, variable, payloadSize, encryptedShellcode, formattedKey, formattedIv, variable, variable)
+			__rust_aes__ = fmt.Sprintf(__rust_aes__, keyNotification, variable, payloadSize, encryptedShellcode, key, formattedKey, formattedIv, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __rust_aes__, cipher)
+		default:
+			fmt.Printf("[!] Guide mode does not support the %s in Rust language, yet!\n\n", cipher)
 		}
-    case "go":
+	case "nim":
+		fmt.Printf("[!] Guide mode does not support Nim language, yet!\n\n")
+	case "go":
 		extension := "go"
 
 		// Call function named SetDecryptionFile
@@ -1039,72 +1385,128 @@ func DecryptorsTemplates(language string, cipher string, variable string, key in
 		switch strings.ToLower(cipher) {
 		case "rot":
 			// Config dynamic variable
-			__go_rot__ = fmt.Sprintf(__go_rot__, variable, encryptedShellcode, key, variable)
+			__go_rot__ = fmt.Sprintf(__go_rot__, variable, encryptedShellcode, key, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __go_rot__, cipher)
 		case "xor":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Config dynamic variable
-			__go_xor__ = fmt.Sprintf(__go_xor__, variable, encryptedShellcode, formattedKey, variable)
+			__go_xor__ = fmt.Sprintf(__go_xor__, variable, encryptedShellcode, formattedKey, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __go_xor__, cipher)
-        case "b64xor":
+		case "b64xor":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Config dynamic variable
-			__go_b64xor__ = fmt.Sprintf(__go_b64xor__, variable, encryptedShellcode, formattedKey, variable)
+			__go_b64xor__ = fmt.Sprintf(__go_b64xor__, variable, encryptedShellcode, formattedKey, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __go_b64xor__, cipher)
-        case "chacha20":
-            // Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
-
-			// Config dynamic variable
-			__go_chacha20__ = fmt.Sprintf(__go_chacha20__, variable, encryptedShellcode, formattedKey, variable)
-
-			// Call function named SaveTamplate2File
-			SaveTamplate2File(foundFilename, __go_chacha20__, cipher)
-        case "b64chacha20":
-            // Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
-
-			// Config dynamic variable
-			__go_b64chacha20__ = fmt.Sprintf(__go_b64chacha20__, variable, encryptedShellcode, formattedKey, variable)
-
-			// Call function named SaveTamplate2File
-			SaveTamplate2File(foundFilename, __go_b64chacha20__, cipher)
 		case "rc4":
 			// Config dynamic variable
-			__go_rc4__ = fmt.Sprintf(__go_rc4__, variable, encryptedShellcode, passphrase, variable)
+			__go_rc4__ = fmt.Sprintf(__go_rc4__, variable, encryptedShellcode, passphrase, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __go_rc4__, cipher)
+		case "b64rc4":
+			// Config dynamic variable
+			__go_b64rc4__ = fmt.Sprintf(__go_b64rc4__, variable, encryptedShellcode, passphrase, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __go_b64rc4__, cipher)
 		case "aes":
 			// Call function named KeyDetailsFormatter
-			formattedKey := Output.KeyDetailsFormatter(byteKey)
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
 
 			// Call function named KeyDetailsFormatter
-			formattedIv := Output.KeyDetailsFormatter(iv)
-
-			// Call function named AddValues2Template
-			__go_aes__ = Converters.AddValues2Template(operatingSystem, __go_aes__)
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
 
 			// Config dynamic variable
-			__go_aes__ = fmt.Sprintf(__go_aes__, variable, encryptedShellcode, formattedKey, formattedIv, variable)
+			__go_aes__ = fmt.Sprintf(__go_aes__, variable, encryptedShellcode, formattedKey, formattedIv, variable, variable)
 
 			// Call function named SaveTamplate2File
 			SaveTamplate2File(foundFilename, __go_aes__, cipher)
+		case "b64aes":
+			// Call function named KeyDetailsFormatter
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
+
+			// Call function named KeyDetailsFormatter
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
+
+			// Config dynamic variable
+			__go_b64aes__ = fmt.Sprintf(__go_b64aes__, variable, encryptedShellcode, formattedKey, formattedIv, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __go_b64aes__, cipher)
+		case "chacha20":
+			// Call function named KeyDetailsFormatter
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
+
+			// Config dynamic variable
+			__go_chacha20__ = fmt.Sprintf(__go_chacha20__, variable, encryptedShellcode, formattedKey, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __go_chacha20__, cipher)
+		case "b64chacha20":
+			// Call function named KeyDetailsFormatter
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
+
+			// Config dynamic variable
+			__go_b64chacha20__ = fmt.Sprintf(__go_b64chacha20__, variable, encryptedShellcode, formattedKey, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __go_b64chacha20__, cipher)
+		default:
+			fmt.Printf("[!] Guide mode does not support the %s in Go language, yet!\n\n", cipher)
 		}
-	case "nim":
-		fmt.Printf("[!] Guide mode does not support Nim language, yet!\n\n")
+	case "python":
+		extension := "py"
 
+		// Call function named SetDecryptionFile
+		foundFilename := SetDecryptionFile(extension)
 
+		switch strings.ToLower(cipher) {
+		case "rot":
+			// Config dynamic variable
+			__python_rot__ = fmt.Sprintf(__python_rot__, variable, encryptedShellcode, key, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __python_rot__, cipher)
+		case "xor":
+			// Call function named KeyDetailsFormatter
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
+
+			// Config dynamic variable
+			__python_xor__ = fmt.Sprintf(__python_xor__, variable, encryptedShellcode, formattedKey, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __python_xor__, cipher)
+		case "rc4":
+			// Config dynamic variable
+			__python_rc4__ = fmt.Sprintf(__python_rc4__, passphrase, variable, encryptedShellcode, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __python_rc4__, cipher)
+		case "aes":
+			// Call function named KeyDetailsFormatter
+			formattedKey := Output.KeyDetailsFormatter(byteKey, language)
+
+			// Call function named KeyDetailsFormatter
+			formattedIv := Output.KeyDetailsFormatter(iv, language)
+
+			// Config dynamic variable
+			__python_aes__ = fmt.Sprintf(__python_aes__, formattedKey, formattedIv, variable, encryptedShellcode, variable, variable)
+
+			// Call function named SaveTamplate2File
+			SaveTamplate2File(foundFilename, __python_aes__, cipher)
+		default:
+			fmt.Printf("[!] Guide mode does not support the %s in Python language, yet!\n\n", cipher)
+		}
 	default:
 		logger.Fatal("Unsupported programming language")
 	}

@@ -1,10 +1,11 @@
 package Output
 
 import (
-	"Supernova/Utils"
 	"Supernova/Converters"
+	"Supernova/Utils"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -39,7 +40,6 @@ func PrintKeyDetails(key []byte) {
 	for i, b := range key {
 		// decimalValue := int(b)
 		hexValue := fmt.Sprintf("%02x", b)
-		// fmt.Printf("byte(0x%s) => %d", hexValue, decimalValue)
 		fmt.Printf("0x%s", hexValue)
 		if i < len(key)-1 {
 			fmt.Printf(", ")
@@ -50,16 +50,39 @@ func PrintKeyDetails(key []byte) {
 }
 
 // KeyDetailsFormatter function
-func KeyDetailsFormatter(key []byte) string {
+func KeyDetailsFormatter(key []byte, language string) string {
 	var formattedKey string
 	for i, b := range key {
-		hexValue := fmt.Sprintf("%02x", b)
-		formattedKey += "0x" + hexValue
-		if i < len(key)-1 {
-			formattedKey += ", "
+		if language == "python" {
+			hexValue := fmt.Sprintf("%02x", b)
+			formattedKey += "\\x" + hexValue
+		} else {
+			hexValue := fmt.Sprintf("%02x", b)
+			formattedKey += "0x" + hexValue
+			if i < len(key)-1 {
+				formattedKey += ", "
+			}
 		}
 	}
 	return formattedKey
+}
+
+// DetectNotification function
+func DetectNotification(key int) int {
+	logger := log.New(os.Stderr, "[!] ", 0)
+	keyNotification := 0
+	switch key {
+	case 16:
+		keyNotification = 128
+	case 24:
+		keyNotification = 192
+	case 32:
+		keyNotification = 256
+	default:
+		logger.Fatal("Initial Error, valid AES key not found\n")
+	}
+
+	return keyNotification
 }
 
 // SaveShellcodeToFile function
@@ -70,18 +93,21 @@ func SaveShellcodeToFile(shellcode, filename string) error {
 	// Decodes shellcode string into byte array
 	data, err := hex.DecodeString(shellcode)
 	if err != nil {
-		return fmt.Errorf("Error decoding shellcode: %v", err)
+		fmt.Println("Error decoding shellcode: ", err)
+		return err
 	}
 
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("Error creating file: %v", err)
+		fmt.Println("Error creating file: ", err)
+		return err
 	}
 	defer file.Close()
 
 	_, err = file.Write(data)
 	if err != nil {
-		return fmt.Errorf("Error writing to file: %v", err)
+		fmt.Println("Error writing to file: ", err)
+		return err
 	}
 
 	absolutePath, err := Utils.GetAbsolutePath(filename)
@@ -90,6 +116,6 @@ func SaveShellcodeToFile(shellcode, filename string) error {
 		return err
 	}
 
-	fmt.Printf("[+] Save encrypted shellcode file to " + absolutePath + "\n\n")
+	fmt.Printf("[+] 加密后的文件已保存到 " + absolutePath + "\n\n")
 	return nil
 }
